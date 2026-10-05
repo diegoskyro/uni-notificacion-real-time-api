@@ -7,12 +7,12 @@ pipeline {
     stages {
         stage('Maven Clean') {
             steps {
-                sh 'mvn clean'
+                sh 'mvn clean -Dmaven.wagon.http.allowall=true -Dmaven.resolver.transport=wagon'
             }
         }
         stage('Maven Package'){
             steps {
-                sh 'mvn package'
+                sh 'mvn package -Dmaven.wagon.http.allowall=true -Dmaven.resolver.transport=wagon'
                 stash includes: 'target/*.jar', name: 'app-jar' // Stash the .jar file
             }
         }
@@ -34,4 +34,5 @@ pipeline {
             }
         }
     }
-}
+}
+
