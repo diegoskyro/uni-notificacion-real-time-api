@@ -6,20 +6,20 @@ pipeline {
       }
       stages {
         stage('Maven Clean') {
-            agent { label 'master' }
+            agent { label 'jenkins3.87' }
           steps {
             sh 'mvn clean'
           }
         }
         stage('Maven Package'){
-            agent { label 'master' }
+            agent { label 'jenkins3.87' }
             steps {
                 sh 'mvn package'
                 stash includes: 'target/*.jar', name: 'app-jar' // Stash the .jar file
             }
         }
         stage('Load Properties'){
-            agent { label 'master' }
+            agent { label 'jenkins3.87' }
             steps {
                 script {
                 	sh 'cat src/main/resources/application.properties'
@@ -30,25 +30,12 @@ pipeline {
                 }
             }
         }
-        stage('Transfer JAR') {
-            agent { label 'remote-java-server-83' } // Replace with your remote server label
+        stage('Docker Deploy') {
+            agent { label 'jenkins3.87' }
             steps {
-                sshagent(['ac0b1b39-b6e7-49fb-b6a4-fbfaa327d14c']) { // Replace with your SSH key ID
-                	sh "ls"
-                	unstash 'app-jar' // Unstash the .jar file
-                    sh "scp -oStrictHostKeyChecking=no target/$NAME_APP-0.0.1-SNAPSHOT.jar integracion@192.168.3.83:/home/integracion/projects"
-                }
+                sh 'docker compose down || true'
+                sh 'docker compose up -d --build'
             }
-        }
-        stage('Jar Run') {
-        	agent { label 'remote-java-server-83' }
-            steps {
-                withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
-                    sh 'fuser -k $SERVER_PORT/tcp || true'
-                    sh 'nohup java -jar /home/integracion/projects/$NAME_APP-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev > /home/integracion/projects/log-$NAME_APP.log 2>&1 &'
-                }
-            }
-
         }
     }
 }
