@@ -40,16 +40,15 @@ pipeline {
                 script {
                     sh 'cat src/main/resources/application.properties'
                     
-                    def props = new Properties()
-                    def propsFile = new File("${WORKSPACE}/src/main/resources/application.properties")
-                    if (propsFile.exists()) {
-                        propsFile.withInputStream { stream -> props.load(stream) }
-                    }
-                    env.SERVER_PORT = props.getProperty('server.port', '8082')
-                    env.NAME_APP = props.getProperty('spring.application.name', 'corenotificacion-api')
+                    def appName = sh(script: 'grep "^spring.application.name=" src/main/resources/application.properties | cut -d= -f2 || true', returnStdout: true).trim()
+                    def serverPort = sh(script: 'grep "^server.port=" src/main/resources/application.properties | cut -d= -f2 || true', returnStdout: true).trim()
+                    
+                    env.NAME_APP = appName ?: 'corenotificacion-api'
+                    env.SERVER_PORT = serverPort ?: '8082'
                 }
             }
         }
+
         stage('Docker Deploy') {
             steps {
                 sh 'docker compose down || true'
