@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="corenotificacion-api"/>
+    <springProperty scope="context" name="logstashDestination" source="logstash.destination" defaultValue="192.168.3.212:5044"/>
+
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${logstashDestination}</destination>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                        "level": "%level",
+                        "application": "${appName:corenotificacion-api}",
+                        "trace_id": "%X{trace_id:-}",
+                        "span_id": "%X{span_id:-}",
+                        "pid": "${PID:-}",
+                        "thread": "%thread",
+                        "class": "%logger{40}",
+                        "message": "%message"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- Puente para pasar la configuración de Spring a Sentry -->
+    <springProperty scope="context" name="sentryEnv" source="spring.profiles.active" defaultValue="development"/>
+    <springProperty scope="context" name="sentryDsn" source="sentry.dsn"/>
+
+    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
+        <options>
+            <dsn>${sentryDsn}</dsn>
+            <environment>${sentryEnv}</environment>
+        </options>
+        <minimumEventLevel>WARN</minimumEventLevel>
+        <minimumBreadcrumbLevel>INFO</minimumBreadcrumbLevel>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="SENTRY"/>
+    </root>
+</configuration>
