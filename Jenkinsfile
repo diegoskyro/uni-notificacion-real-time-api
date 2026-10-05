@@ -52,13 +52,15 @@ pipeline {
         stage('Docker Deploy') {
             steps {
                 script {
+                    def port = env.SERVER_PORT ?: '8082'
                     sh 'docker stop ${NAME_APP} || true'
                     sh 'docker rm ${NAME_APP} || true'
                     sh 'docker build -t ${NAME_APP}:latest .'
-                    sh 'docker run -d --name ${NAME_APP} -p ${SERVER_PORT}:${SERVER_PORT} -e SPRING_PROFILES_ACTIVE=dev -e TZ=America/Bogota --restart always ${NAME_APP}:latest'
+                    sh "docker run -d --name \${NAME_APP} -p ${port}:${port} -e SERVER_PORT=${port} -e SPRING_PROFILES_ACTIVE=dev -e TZ=America/Bogota --restart always \${NAME_APP}:latest"
                 }
             }
         }
+
 
 
     }

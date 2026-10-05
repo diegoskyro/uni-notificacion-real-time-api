@@ -17,7 +17,9 @@ EXPOSE 8082
 
 # Variables de entorno por defecto
 ENV SPRING_PROFILES_ACTIVE=dev
+ENV SERVER_PORT=8082
 ENV JAVA_OPTS="-Xms256m -Xmx512m"
 
 # Comando de entrada
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=$SERVER_PORT -jar app.jar"]
+
