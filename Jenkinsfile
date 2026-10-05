@@ -40,9 +40,13 @@ pipeline {
                 script {
                     sh 'cat src/main/resources/application.properties'
                     
-                    properties = readProperties file: 'src/main/resources/application.properties'
-                    env.SERVER_PORT = properties['server.port']
-                    env.NAME_APP = properties['spring.application.name']
+                    def props = new Properties()
+                    def propsFile = new File("${WORKSPACE}/src/main/resources/application.properties")
+                    if (propsFile.exists()) {
+                        propsFile.withInputStream { stream -> props.load(stream) }
+                    }
+                    env.SERVER_PORT = props.getProperty('server.port', '8082')
+                    env.NAME_APP = props.getProperty('spring.application.name', 'corenotificacion-api')
                 }
             }
         }
@@ -54,5 +58,6 @@ pipeline {
         }
     }
 }
+
 
 
