@@ -3,10 +3,11 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Configurar zona horaria (America/Bogota)
-RUN apk add --no-tzdata tzdata && \
+RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/America/Bogota /etc/localtime && \
     echo "America/Bogota" > /etc/timezone && \
     apk del tzdata
+
 
 # Copiar el JAR generado previamente por el Maven Package en Jenkins
 COPY target/*.jar app.jar
